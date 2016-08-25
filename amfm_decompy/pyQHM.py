@@ -101,8 +101,29 @@ class ModulatedSign(object):
         # Interpolation from magnitude and frequency.
 
         for idx, func in [(0, 'linear'), (2, 'cubic')]:
+
+            #######################################################
+            #DAWER--make sure that the samples are both monotonically increasing
+            #if they aren't, we should order them so that they are indeed monotonically increasing
+            values = np.array(self.H[:, idx, samp_frames])
+            ordering = []
+            print('testing some shit')
+            for i in range(len(values)):
+                ordering.append(i)
+            if(np.min(np.diff(values))):
+                print('non-monotonic')
+                ir = IsotonicRegression()
+                values = ir.fit_transform(ordering,values)
+
             f = scipy.interpolate.interp1d(samp_frames,
-                                       self.H[:, idx, samp_frames], kind=func)
+                                       values, kind=func)
+
+            ######################################################
+            #uncomment this f = whatever if the fix i wrote above doesn't work
+
+
+            # f = scipy.interpolate.interp1d(samp_frames,
+            #                            self.H[:, idx, samp_frames], kind=func)
             self.H[:, idx, np.nonzero(pitch_track)[0]] = f(
                                                     np.nonzero(pitch_track)[0])
 

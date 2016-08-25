@@ -98,11 +98,15 @@ class PitchObj(object):
         self.nframes = len(self.frames_pos)
 
     def set_values(self, samp_values, file_size, interp_tech='pchip'):
+
         self.samp_values = samp_values
         self.fix()
+
         self.values = self.upsample(self.samp_values, file_size, 0, 0,
                                     interp_tech)  # type: np.ndarray
+
         self.edges = self.edges_finder(self.values)
+
         self.interpolate()
         self.values_interp = self.upsample(self.samp_interp, file_size,
                                            self.samp_interp[0],
@@ -174,7 +178,9 @@ class PitchObj(object):
     """
     def upsample(self, samp_values, file_size, first_samp=0, last_samp=0,
                  interp_tech='pchip'):
+
         if interp_tech is 'step':
+
             beg_pad = (self.noverlap)/2
             up_version = np.zeros((file_size))
             up_version[:beg_pad] = first_samp
@@ -183,6 +189,7 @@ class PitchObj(object):
             up_version[beg_pad+self.frame_jump*self.nframes:] = last_samp
 
         elif interp_tech is 'pchip' or 'spline':
+
             if np.amin(samp_values) > 0:
                 if interp_tech is 'pchip':
                     up_version = pchip(self.frames_pos,
@@ -193,6 +200,7 @@ class PitchObj(object):
                                               u=self.frames_pos)
                     up_version = splev(xrange(file_size), tck)[1]
             else:
+
                 beg_pad = (self.noverlap)/2
                 up_version = np.zeros((file_size))
                 up_version[:beg_pad] = first_samp
@@ -207,8 +215,17 @@ class PitchObj(object):
                                              up_interval[-1]+(self.frame_jump/2))
 
                     if interp_tech is 'pchip' and len(frame) > 2:
+                        ######dawer's moodification
+                        samp_vals_bruh = np.array(samp_values[frame])
+                        from sklearn.isotonic import IsotonicRegression
+                        ir = IsotonicRegression()
+                        if np.min(np.diff(samp_vals_bruh))<0:
+                            samp_vals_bruh = ir.fit_transform(up_interval,samp_vals_bruh)
                         up_version[tot_interval] = pchip(up_interval,
-                                                         samp_values[frame])(tot_interval)
+                                                         samp_vals_bruh)(tot_interval)
+                        #######
+                        # up_version[tot_interval] = pchip(up_interval,
+                        #                                  samp_values[frame])(tot_interval)
 
                     elif interp_tech is 'spline' and len(frame) > 2:
                         tck, u_original = splprep([up_interval, samp_values[frame]],
@@ -217,8 +234,20 @@ class PitchObj(object):
 
                     # MD: In case len(frame)==2, above methods fail. Use linear interpolation instead.
                     elif len(frame) == 2:
-                        up_version[tot_interval] = interp1d(up_interval, samp_values[frame],
-                                                            fill_value='extrapolate')(tot_interval)
+                        from scipy import interp
+                        print("lenght of fram was 2")
+                        #dawer's modifications #########################
+                        samp_vals_bruh = np.array(samp_values[frame])
+                        from sklearn.isotonic import IsotonicRegression
+                        ir = IsotonicRegression()
+
+                        samp_vals_bruh = ir.fit_transform(up_interval,samp_vals_bruh)
+                        up_version[tot_interval] = interp1d(up_interval, samp_vals_bruh,
+                                                            fill_value='0',bounds_error=False)(tot_interval)
+
+                        ##############################
+                        # up_version[tot_interval] = interp1d(up_interval, samp_values[frame],
+                        #                                     fill_value='extrapolate')(tot_interval)
 
                     elif len(frame) == 1:
                         up_version[tot_interval] = samp_values[frame]
@@ -982,4 +1011,3 @@ def stride_matrix(vector, n_lin, n_col, hop):
                         strides=(vector.strides[0]*hop, vector.strides[0]))
 
     return data_matrix
-
