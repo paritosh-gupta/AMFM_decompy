@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='AMFM_decompy',
@@ -16,4 +17,3 @@ setup(
                     its modulated components, aka AM-FM decomposition.',
     long_description=open('README.txt').read(),
 )
-

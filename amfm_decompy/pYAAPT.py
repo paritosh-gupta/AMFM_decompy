@@ -235,7 +235,6 @@ class PitchObj(object):
                     # MD: In case len(frame)==2, above methods fail. Use linear interpolation instead.
                     elif len(frame) == 2:
                         from scipy import interp
-                        print("lenght of fram was 2")
                         #dawer's modifications #########################
                         samp_vals_bruh = np.array(samp_values[frame])
                         from sklearn.isotonic import IsotonicRegression
