@@ -46,7 +46,9 @@ from scipy.signal import firwin, hanning, kaiser, medfilt, lfilter
 from scipy.interpolate import *
 import amfm_decompy.basic_tools as basic
 from thread import interrupt_main
-
+from sklearn.isotonic import IsotonicRegression
+from scipy import interp
+from sklearn.isotonic import IsotonicRegression
 
 """
 --------------------------------------------
@@ -217,7 +219,7 @@ class PitchObj(object):
                     if interp_tech is 'pchip' and len(frame) > 2:
                         ######dawer's moodification
                         samp_vals_bruh = np.array(samp_values[frame])
-                        from sklearn.isotonic import IsotonicRegression
+                        
                         ir = IsotonicRegression()
                         if np.min(np.diff(samp_vals_bruh))<0:
                             samp_vals_bruh = ir.fit_transform(up_interval,samp_vals_bruh)
@@ -234,10 +236,10 @@ class PitchObj(object):
 
                     # MD: In case len(frame)==2, above methods fail. Use linear interpolation instead.
                     elif len(frame) == 2:
-                        from scipy import interp
+                        
                         #dawer's modifications #########################
                         samp_vals_bruh = np.array(samp_values[frame])
-                        from sklearn.isotonic import IsotonicRegression
+                        
                         ir = IsotonicRegression()
 
                         samp_vals_bruh = ir.fit_transform(up_interval,samp_vals_bruh)
