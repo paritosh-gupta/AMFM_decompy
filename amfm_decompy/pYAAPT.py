@@ -544,10 +544,19 @@ def spec_track(signal, pitch, parameters):
 
     if (spec_pitch[-1] < pitch_avg/2):
         spec_pitch[-1] = pitch_avg
-
+    
     spec_voiced = np.array(np.nonzero(spec_pitch)[0])
+
+    ## fix pchip
+    fix_values = spec_pitch[spec_voiced] 
+    ir = IsotonicRegression()
+    if np.min(np.diff(fix_values))<0:
+        fix_values = ir.fit_transform(spec_voiced,fix_values)
+   
     spec_pitch = pchip(spec_voiced,
-                       spec_pitch[spec_voiced])(xrange(pitch.nframes))
+                       fix_values)(xrange(pitch.nframes))
+    # spec_pitch = pchip(spec_voiced,
+    #                    spec_pitch[spec_voiced])(xrange(pitch.nframes))
 
     spec_pitch = lfilter(np.ones((3))/3, 1.0, spec_pitch)
 
